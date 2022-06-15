@@ -1,25 +1,48 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from 'react';
+import 'bootswatch/dist/morph/bootstrap.min.css';
+import { Todo } from './interfaces/Interfaces';
+import TodoForm from './components/TodoForm';
+import { v4 as uuidv4 } from 'uuid';
+import TodoList from './components/TodoList';
 
 function App() {
+  const [todos, setTodos] = useState<Todo[]>([]);
+
+  useEffect(() => {
+    const storedTodos = localStorage.getItem('todos');
+    storedTodos && setTodos(JSON.parse(storedTodos));
+  }, []);
+
+  const toggleDoneTodo = (id: string): void => {
+    const newTodos = todos.map((todo) => {
+      todo.id === id && (todo.done = !todo.done);
+      return todo;
+    });
+    setTodos(newTodos);
+    localStorage.setItem('todos', JSON.stringify(newTodos));
+  };
+
+  const removeTodo = (id: String): void => {
+    const newTodos = [...todos].filter((todo) => todo.id !== id);
+    setTodos(newTodos);
+    localStorage.setItem('todos', JSON.stringify(newTodos));
+  };
+
+  const addNewTodo = (todo: Todo): void => {
+    const newTodos = [{ ...todo, id: uuidv4() }, ...todos];
+    setTodos(newTodos);
+    localStorage.setItem('todos', JSON.stringify(newTodos));
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <TodoForm addNewTodo={addNewTodo} />
+      <TodoList
+        todos={todos}
+        removeTodo={removeTodo}
+        toggleDoneTodo={toggleDoneTodo}
+      />
+    </>
   );
 }
 
